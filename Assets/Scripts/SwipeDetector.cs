@@ -13,11 +13,12 @@ namespace Assets.Scripts
         private bool _swipeDetected;
         private InputAction _touchAction;
         private InputAction _mouseAction;
-        private GameObject _swipeObject;
         private List<GameObject> _swipeObjects;
 
         [SerializeField] private float minSwipeDistance = 0.2f;
         [SerializeField] private float swipeSpeed = 1.0f;
+        [SerializeField] private ThrowableObject throwableObjectPrefab;
+        private ThrowableObject _currentThrowableObject;
 
         private void OnEnable()
         {
@@ -116,28 +117,28 @@ namespace Assets.Scripts
 
         private void CreateSwipeObject()
         {
-            _swipeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            _swipeObject.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(_startPosition.x, _startPosition.y, 10f)); 
+            _currentThrowableObject = Instantiate(throwableObjectPrefab);
+            _currentThrowableObject.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(_startPosition.x, _startPosition.y, 10f));
             Debug.Log("Swipe object created!");
         }
 
         private void MoveSwipeObject()
         {
-            if (_swipeObject != null)
+            if (_currentThrowableObject != null)
             {
                 Vector3 newPosition = Camera.main.ScreenToWorldPoint(new Vector3(_endPosition.x, _endPosition.y, 10f));
-                _swipeObject.transform.position = Vector3.Lerp(_swipeObject.transform.position, newPosition, Time.deltaTime * swipeSpeed);
+                _currentThrowableObject.transform.position = Vector3.Lerp(_currentThrowableObject.transform.position, newPosition, Time.deltaTime * swipeSpeed);
                 Debug.Log("Swipe object moved!");
             }
         }
 
         private void InstantiateSwipeObject()
         {
-            if (_swipeObject != null)
+            if (_currentThrowableObject != null)
             {
-                Instantiate(_swipeObject, _endPosition, Quaternion.identity);
-                _swipeObjects.Add(_swipeObject);
-                _swipeObject = null;
+                _currentThrowableObject.Throw(Vector3.forward, 10f);
+                _swipeObjects.Add(_currentThrowableObject.gameObject);
+                _currentThrowableObject = null;
                 Debug.Log("Swipe object instantiated!");
             }
         }

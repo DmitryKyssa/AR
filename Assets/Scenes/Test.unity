@@ -323,6 +323,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minSwipeDistance: 0.2
   swipeSpeed: 5
+  throwableObjectPrefab: {fileID: -523498790889483056, guid: bdff1ef04932fd74c89a07aa52f2bc50,
+    type: 3}
 --- !u!1 &2145542886
 GameObject:
   m_ObjectHideFlags: 0
