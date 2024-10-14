@@ -2,6 +2,7 @@
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
+using System.Collections.Generic;
 
 namespace Assets.Scripts
 {
@@ -12,8 +13,11 @@ namespace Assets.Scripts
         private bool _swipeDetected;
         private InputAction _touchAction;
         private InputAction _mouseAction;
+        private GameObject _swipeObject;
+        private List<GameObject> _swipeObjects;
 
         [SerializeField] private float minSwipeDistance = 0.2f;
+        [SerializeField] private float swipeSpeed = 1.0f;
 
         private void OnEnable()
         {
@@ -26,6 +30,8 @@ namespace Assets.Scripts
             _mouseAction.performed += ctx => OnMousePerformed(ctx);
             _mouseAction.canceled += ctx => OnMouseCanceled(ctx);
             _mouseAction.Enable();
+
+            _swipeObjects = new List<GameObject>();
         }
 
         private void OnDisable()
@@ -45,10 +51,12 @@ namespace Assets.Scripts
                 {
                     _startPosition = touch.position.ReadValue();
                     _swipeDetected = false;
+                    CreateSwipeObject();
                 }
                 else if (touch.phase.ReadValue() == TouchPhase.Moved)
                 {
                     _endPosition = touch.position.ReadValue();
+                    MoveSwipeObject();
                     DetectSwipe();
                 }
             }
@@ -59,6 +67,7 @@ namespace Assets.Scripts
             if (context.control is TouchControl touch && touch.phase.ReadValue() == TouchPhase.Ended)
             {
                 _endPosition = touch.position.ReadValue();
+                InstantiateSwipeObject();
                 DetectSwipe();
             }
         }
@@ -69,10 +78,12 @@ namespace Assets.Scripts
             {
                 _startPosition = Mouse.current.position.ReadValue();
                 _swipeDetected = false;
+                CreateSwipeObject();
             }
             else if (Mouse.current.leftButton.isPressed)
             {
                 _endPosition = Mouse.current.position.ReadValue();
+                MoveSwipeObject();
                 DetectSwipe();
             }
         }
@@ -82,6 +93,7 @@ namespace Assets.Scripts
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
                 _endPosition = Mouse.current.position.ReadValue();
+                InstantiateSwipeObject();
                 DetectSwipe();
             }
         }
@@ -99,6 +111,34 @@ namespace Assets.Scripts
                 _swipeDetected = true;
                 Vector2 direction = swipeVector.normalized;
                 Debug.Log($"Swipe detected! Direction: {direction}");
+            }
+        }
+
+        private void CreateSwipeObject()
+        {
+            _swipeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _swipeObject.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(_startPosition.x, _startPosition.y, 10f)); 
+            Debug.Log("Swipe object created!");
+        }
+
+        private void MoveSwipeObject()
+        {
+            if (_swipeObject != null)
+            {
+                Vector3 newPosition = Camera.main.ScreenToWorldPoint(new Vector3(_endPosition.x, _endPosition.y, 10f));
+                _swipeObject.transform.position = Vector3.Lerp(_swipeObject.transform.position, newPosition, Time.deltaTime * swipeSpeed);
+                Debug.Log("Swipe object moved!");
+            }
+        }
+
+        private void InstantiateSwipeObject()
+        {
+            if (_swipeObject != null)
+            {
+                Instantiate(_swipeObject, _endPosition, Quaternion.identity);
+                _swipeObjects.Add(_swipeObject);
+                _swipeObject = null;
+                Debug.Log("Swipe object instantiated!");
             }
         }
     }
