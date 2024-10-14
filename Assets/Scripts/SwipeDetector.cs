@@ -11,6 +11,7 @@ namespace Assets.Scripts
         private Vector2 _endPosition;
         private bool _swipeDetected;
         private InputAction _touchAction;
+        private InputAction _mouseAction;
 
         [SerializeField] private float minSwipeDistance = 0.2f;
 
@@ -20,12 +21,20 @@ namespace Assets.Scripts
             _touchAction.performed += ctx => OnTouchPerformed(ctx);
             _touchAction.canceled += ctx => OnTouchCanceled(ctx);
             _touchAction.Enable();
+
+            _mouseAction = new InputAction(binding: "<Mouse>/leftButton");
+            _mouseAction.performed += ctx => OnMousePerformed(ctx);
+            _mouseAction.canceled += ctx => OnMouseCanceled(ctx);
+            _mouseAction.Enable();
         }
 
         private void OnDisable()
         {
             _touchAction.Disable();
             _touchAction.Dispose();
+
+            _mouseAction.Disable();
+            _mouseAction.Dispose();
         }
 
         private void OnTouchPerformed(InputAction.CallbackContext context)
@@ -54,6 +63,29 @@ namespace Assets.Scripts
             }
         }
 
+        private void OnMousePerformed(InputAction.CallbackContext context)
+        {
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                _startPosition = Mouse.current.position.ReadValue();
+                _swipeDetected = false;
+            }
+            else if (Mouse.current.leftButton.isPressed)
+            {
+                _endPosition = Mouse.current.position.ReadValue();
+                DetectSwipe();
+            }
+        }
+
+        private void OnMouseCanceled(InputAction.CallbackContext context)
+        {
+            if (Mouse.current.leftButton.wasReleasedThisFrame)
+            {
+                _endPosition = Mouse.current.position.ReadValue();
+                DetectSwipe();
+            }
+        }
+
         private void DetectSwipe()
         {
             if (_swipeDetected)
@@ -67,7 +99,6 @@ namespace Assets.Scripts
                 _swipeDetected = true;
                 Vector2 direction = swipeVector.normalized;
                 Debug.Log($"Swipe detected! Direction: {direction}");
-                Debug.DrawLine(_startPosition, _endPosition, Color.blue, 1f);
             }
         }
     }
