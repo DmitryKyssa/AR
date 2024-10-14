@@ -68,7 +68,7 @@ namespace Assets.Scripts
             if (context.control is TouchControl touch && touch.phase.ReadValue() == TouchPhase.Ended)
             {
                 _endPosition = touch.position.ReadValue();
-                InstantiateSwipeObject();
+                //InstantiateSwipeObject();
                 DetectSwipe();
             }
         }
@@ -94,7 +94,7 @@ namespace Assets.Scripts
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
                 _endPosition = Mouse.current.position.ReadValue();
-                InstantiateSwipeObject();
+                //InstantiateSwipeObject();
                 DetectSwipe();
             }
         }
@@ -110,8 +110,11 @@ namespace Assets.Scripts
             if (swipeVector.magnitude >= minSwipeDistance)
             {
                 _swipeDetected = true;
-                Vector2 direction = swipeVector.normalized;
-                Debug.Log($"Swipe detected! Direction: {direction}");
+
+                Vector3 throwDirection = new Vector3(((Vector2)swipeVector).x, 0, ((Vector2)swipeVector).y); 
+                Debug.Log($"Swipe detected! Direction: {throwDirection}");
+
+                InstantiateSwipeObject(throwDirection);
             }
         }
 
@@ -127,16 +130,16 @@ namespace Assets.Scripts
             if (_currentThrowableObject != null)
             {
                 Vector3 newPosition = Camera.main.ScreenToWorldPoint(new Vector3(_endPosition.x, _endPosition.y, 10f));
-                _currentThrowableObject.transform.position = Vector3.Lerp(_currentThrowableObject.transform.position, newPosition, Time.deltaTime * swipeSpeed);
+                _currentThrowableObject.transform.position = newPosition;
                 Debug.Log("Swipe object moved!");
             }
         }
 
-        private void InstantiateSwipeObject()
+        private void InstantiateSwipeObject(Vector3 throwDirection)
         {
             if (_currentThrowableObject != null)
             {
-                _currentThrowableObject.Throw(Vector3.forward, 10f);
+                _currentThrowableObject.Throw(throwDirection, 1f); 
                 _swipeObjects.Add(_currentThrowableObject.gameObject);
                 _currentThrowableObject = null;
                 Debug.Log("Swipe object instantiated!");
